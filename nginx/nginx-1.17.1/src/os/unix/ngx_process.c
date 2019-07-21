@@ -183,6 +183,7 @@ ngx_spawn_process(ngx_cycle_t *cycle, ngx_spawn_proc_pt proc, void *data,
     ngx_process_slot = s;
 
 
+    // 生成子进程(worker/cache manager)
     pid = fork();
 
     switch (pid) {
@@ -194,6 +195,7 @@ ngx_spawn_process(ngx_cycle_t *cycle, ngx_spawn_proc_pt proc, void *data,
         return NGX_INVALID_PID;
 
     case 0:
+        // 子进程执行，proc为事件循环处理
         ngx_parent = ngx_pid;
         ngx_pid = ngx_getpid();
         proc(cycle, data);
@@ -203,6 +205,8 @@ ngx_spawn_process(ngx_cycle_t *cycle, ngx_spawn_proc_pt proc, void *data,
         break;
     }
 
+    // 父进程执行，子进程执行不到这里，因为事件循环为死循环
+    // 因此，以下数据结构不存在多进程访问的问题(ngx_processes, ngx_last_process)
     ngx_log_error(NGX_LOG_NOTICE, cycle->log, 0, "start %s %P", name, pid);
 
     ngx_processes[s].pid = pid;

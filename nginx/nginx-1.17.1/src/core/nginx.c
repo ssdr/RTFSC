@@ -207,6 +207,7 @@ main(int argc, char *const *argv)
         return 1;
     }
 
+    // 解析启动参数
     if (ngx_get_options(argc, argv) != NGX_OK) {
         return 1;
     }
@@ -221,6 +222,7 @@ main(int argc, char *const *argv)
 
     /* TODO */ ngx_max_sockets = -1;
 
+    // 各时间变量初始化
     ngx_time_init();
 
 #if (NGX_PCRE)
@@ -230,11 +232,13 @@ main(int argc, char *const *argv)
     ngx_pid = ngx_getpid();
     ngx_parent = ngx_getppid();
 
+    // 日志初始化
     log = ngx_log_init(ngx_prefix);
     if (log == NULL) {
         return 1;
     }
 
+    // SSL相关初始化
     /* STUB */
 #if (NGX_OPENSSL)
     ngx_ssl_init(log);
@@ -254,14 +258,17 @@ main(int argc, char *const *argv)
         return 1;
     }
 
+    // 保存运行参数
     if (ngx_save_argv(&init_cycle, argc, argv) != NGX_OK) {
         return 1;
     }
 
+    // 赋值init_cycle中到成员
     if (ngx_process_options(&init_cycle) != NGX_OK) {
         return 1;
     }
 
+    // 操作系统相关到初始化
     if (ngx_os_init(log) != NGX_OK) {
         return 1;
     }
@@ -280,14 +287,18 @@ main(int argc, char *const *argv)
 
     ngx_slab_sizes_init();
 
+    // 继承之前的监听socket
     if (ngx_add_inherited_sockets(&init_cycle) != NGX_OK) {
         return 1;
     }
 
+    // 给ngx_modules数组中到模块编号
     if (ngx_preinit_modules() != NGX_OK) {
         return 1;
     }
 
+    // 使用init_cycle初始化cycle，重要且复杂
+    // TODO: why two cycles?
     cycle = ngx_init_cycle(&init_cycle);
     if (cycle == NULL) {
         if (ngx_test_config) {
@@ -340,6 +351,7 @@ main(int argc, char *const *argv)
 
 #if !(NGX_WIN32)
 
+    // 初始化信号处理函数
     if (ngx_init_signals(cycle->log) != NGX_OK) {
         return 1;
     }
@@ -375,6 +387,7 @@ main(int argc, char *const *argv)
 
     ngx_use_stderr = 0;
 
+    // 启动进程
     if (ngx_process == NGX_PROCESS_SINGLE) {
         ngx_single_process_cycle(cycle);
 
@@ -464,6 +477,7 @@ ngx_add_inherited_sockets(ngx_cycle_t *cycle)
     ngx_log_error(NGX_LOG_NOTICE, cycle->log, 0,
                   "using inherited sockets from \"%s\"", inherited);
 
+    // 创建存放socket的listen数组
     if (ngx_array_init(&cycle->listening, cycle->pool, 10,
                        sizeof(ngx_listening_t))
         != NGX_OK)
@@ -471,6 +485,7 @@ ngx_add_inherited_sockets(ngx_cycle_t *cycle)
         return NGX_ERROR;
     }
 
+    // Nginx将监听到文件描述符保存在NGINX环境变量中，fd以分号分割
     for (p = inherited, v = p; *p; p++) {
         if (*p == ':' || *p == ';') {
             s = ngx_atoi(v, p - v);
@@ -670,6 +685,7 @@ ngx_exec_new_binary(ngx_cycle_t *cycle, char *const *argv)
 
     p = ngx_cpymem(var, NGINX_VAR "=", sizeof(NGINX_VAR));
 
+    // 将旧版本中的监听fd保存在env中，fd以分号隔开
     ls = cycle->listening.elts;
     for (i = 0; i < cycle->listening.nelts; i++) {
         p = ngx_sprintf(p, "%ud;", ls[i].fd);
@@ -718,6 +734,7 @@ ngx_exec_new_binary(ngx_cycle_t *cycle, char *const *argv)
         return NGX_INVALID_PID;
     }
 
+    // fork新进程，调用exec使新进程执行新版本程序
     pid = ngx_execute(cycle, &ctx);
 
     if (pid == NGX_INVALID_PID) {

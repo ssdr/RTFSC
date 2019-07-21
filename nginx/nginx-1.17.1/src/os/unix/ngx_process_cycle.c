@@ -70,6 +70,7 @@ static ngx_log_t        ngx_exit_log;
 static ngx_open_file_t  ngx_exit_log_file;
 
 
+// 多进程模式，master启动worker进程，重要
 void
 ngx_master_process_cycle(ngx_cycle_t *cycle)
 {
@@ -128,6 +129,7 @@ ngx_master_process_cycle(ngx_cycle_t *cycle)
 
     ccf = (ngx_core_conf_t *) ngx_get_conf(cycle->conf_ctx, ngx_core_module);
 
+    // 启动worker进程
     ngx_start_worker_processes(cycle, ccf->worker_processes,
                                NGX_PROCESS_RESPAWN);
     ngx_start_cache_manager_processes(cycle, 0);
@@ -137,6 +139,7 @@ ngx_master_process_cycle(ngx_cycle_t *cycle)
     sigio = 0;
     live = 1;
 
+    // 启动master事件处理循环
     for ( ;; ) {
         if (delay) {
             if (ngx_sigalrm) {
@@ -269,6 +272,7 @@ ngx_master_process_cycle(ngx_cycle_t *cycle)
                                         ngx_signal_value(NGX_REOPEN_SIGNAL));
         }
 
+        // 热升级时二进制改变，需要调用exec
         if (ngx_change_binary) {
             ngx_change_binary = 0;
             ngx_log_error(NGX_LOG_NOTICE, cycle->log, 0, "changing binary");
@@ -285,6 +289,7 @@ ngx_master_process_cycle(ngx_cycle_t *cycle)
 }
 
 
+// 单进程模式，master做worker的活
 void
 ngx_single_process_cycle(ngx_cycle_t *cycle)
 {
@@ -295,6 +300,7 @@ ngx_single_process_cycle(ngx_cycle_t *cycle)
         exit(2);
     }
 
+    // 执行每个模块的init_process()方法
     for (i = 0; cycle->modules[i]; i++) {
         if (cycle->modules[i]->init_process) {
             if (cycle->modules[i]->init_process(cycle) == NGX_ERROR) {
@@ -304,6 +310,7 @@ ngx_single_process_cycle(ngx_cycle_t *cycle)
         }
     }
 
+    // 启动事件处理循环
     for ( ;; ) {
         ngx_log_debug0(NGX_LOG_DEBUG_EVENT, cycle->log, 0, "worker cycle");
 
@@ -724,6 +731,7 @@ ngx_master_process_exit(ngx_cycle_t *cycle)
 }
 
 
+// worker进程到事件处理循环
 static void
 ngx_worker_process_cycle(ngx_cycle_t *cycle, void *data)
 {
@@ -926,6 +934,7 @@ ngx_worker_process_init(ngx_cycle_t *cycle, ngx_int_t worker)
         ls[i].previous = NULL;
     }
 
+    // worker进程中执行所有模块到init_process()方法
     for (i = 0; cycle->modules[i]; i++) {
         if (cycle->modules[i]->init_process) {
             if (cycle->modules[i]->init_process(cycle) == NGX_ERROR) {

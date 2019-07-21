@@ -37,7 +37,7 @@ struct ngx_shm_zone_s {
 
 
 struct ngx_cycle_s {
-    void                  ****conf_ctx;
+    void                  ****conf_ctx; // 四级指针，OMG!
     ngx_pool_t               *pool;
 
     ngx_log_t                *log;
@@ -120,6 +120,7 @@ typedef struct {
 } ngx_core_conf_t;
 
 
+// 判断是否init_cycle，检查cycle->conf_ctx是否为空
 #define ngx_is_init_cycle(cycle)  (cycle->conf_ctx == NULL)
 
 

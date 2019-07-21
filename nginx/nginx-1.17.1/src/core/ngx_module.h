@@ -219,6 +219,7 @@
 #define NGX_MODULE_V1_PADDING  0, 0, 0, 0, 0, 0, 0, 0
 
 
+// 模块数据结构，重要
 struct ngx_module_s {
     ngx_uint_t            ctx_index;
     ngx_uint_t            index;

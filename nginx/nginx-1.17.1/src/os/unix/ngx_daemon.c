@@ -9,6 +9,7 @@
 #include <ngx_core.h>
 
 
+// fork子进程，父进程退出，以达到后台运行
 ngx_int_t
 ngx_daemon(ngx_log_t *log)
 {
@@ -20,10 +21,10 @@ ngx_daemon(ngx_log_t *log)
         return NGX_ERROR;
 
     case 0:
-        break;
+        break; // 子进程继续往下执行
 
     default:
-        exit(0);
+        exit(0);  // 父进程退出
     }
 
     ngx_parent = ngx_pid;
