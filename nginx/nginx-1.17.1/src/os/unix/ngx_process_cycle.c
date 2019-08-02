@@ -86,6 +86,7 @@ ngx_master_process_cycle(ngx_cycle_t *cycle)
     ngx_listening_t   *ls;
     ngx_core_conf_t   *ccf;
 
+    // 注册信号处理
     sigemptyset(&set);
     sigaddset(&set, SIGCHLD);
     sigaddset(&set, SIGALRM);
@@ -164,6 +165,7 @@ ngx_master_process_cycle(ngx_cycle_t *cycle)
 
         ngx_log_debug0(NGX_LOG_DEBUG_EVENT, cycle->log, 0, "sigsuspend");
 
+        // 等待信号
         sigsuspend(&set);
 
         ngx_time_update();
@@ -349,6 +351,7 @@ ngx_single_process_cycle(ngx_cycle_t *cycle)
 }
 
 
+// 启动n个worker进程
 static void
 ngx_start_worker_processes(ngx_cycle_t *cycle, ngx_int_t n, ngx_int_t type)
 {
@@ -370,6 +373,7 @@ ngx_start_worker_processes(ngx_cycle_t *cycle, ngx_int_t n, ngx_int_t type)
         ch.slot = ngx_process_slot;
         ch.fd = ngx_processes[ngx_process_slot].channel[0];
 
+        // 通告新生成的进程信息
         ngx_pass_open_channel(cycle, &ch);
     }
 }
@@ -436,6 +440,7 @@ ngx_pass_open_channel(ngx_cycle_t *cycle, ngx_channel_t *ch)
 {
     ngx_int_t  i;
 
+    // 将上一个进程的信息(ngx_process_slot标示)通报给所有已生成的进程
     for (i = 0; i < ngx_last_process; i++) {
 
         if (i == ngx_process_slot
@@ -731,7 +736,7 @@ ngx_master_process_exit(ngx_cycle_t *cycle)
 }
 
 
-// worker进程到事件处理循环
+// worker进程的事件处理循环
 static void
 ngx_worker_process_cycle(ngx_cycle_t *cycle, void *data)
 {
@@ -740,6 +745,7 @@ ngx_worker_process_cycle(ngx_cycle_t *cycle, void *data)
     ngx_process = NGX_PROCESS_WORKER;
     ngx_worker = worker;
 
+    // worker进程初始化
     ngx_worker_process_init(cycle, worker);
 
     ngx_setproctitle("worker process");
@@ -755,6 +761,7 @@ ngx_worker_process_cycle(ngx_cycle_t *cycle, void *data)
 
         ngx_log_debug0(NGX_LOG_DEBUG_EVENT, cycle->log, 0, "worker cycle");
 
+        // 真正处理事件的地方
         ngx_process_events_and_timers(cycle);
 
         if (ngx_terminate) {
@@ -973,6 +980,7 @@ ngx_worker_process_init(ngx_cycle_t *cycle, ngx_int_t worker)
     ngx_last_process = 0;
 #endif
 
+    // 注册channel[1]的可读事件，master在fork子进程后会通告其前面生成的所有子进程
     if (ngx_add_channel_event(cycle, ngx_channel, NGX_READ_EVENT,
                               ngx_channel_handler)
         == NGX_ERROR)

@@ -22,6 +22,8 @@ typedef void (*ngx_spawn_proc_pt) (ngx_cycle_t *cycle, void *data);
 typedef struct {
     ngx_pid_t           pid;
     int                 status;
+    // 进程间通信用的unix domain socket
+    // channel[0]给父进程使用，channel[1]给子进程使用
     ngx_socket_t        channel[2];
 
     ngx_spawn_proc_pt   proc;

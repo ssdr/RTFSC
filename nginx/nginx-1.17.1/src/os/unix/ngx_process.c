@@ -114,6 +114,9 @@ ngx_spawn_process(ngx_cycle_t *cycle, ngx_spawn_proc_pt proc, void *data,
 
         /* Solaris 9 still has no AF_LOCAL */
 
+        // 进程间通信用的unix domain socket
+        // 在fork调用之前创建，这样子进程继承父进程的资源，父子进程就都有了这一对socket
+        // 注意socketpair调用生成的两个fd的关系，在fd0写入消息可以在fd1中读出，反之亦然
         if (socketpair(AF_UNIX, SOCK_STREAM, 0, ngx_processes[s].channel) == -1)
         {
             ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_errno,
@@ -173,6 +176,7 @@ ngx_spawn_process(ngx_cycle_t *cycle, ngx_spawn_proc_pt proc, void *data,
             return NGX_INVALID_PID;
         }
 
+        // 记录channel[1]
         ngx_channel = ngx_processes[s].channel[1];
 
     } else {
@@ -180,6 +184,7 @@ ngx_spawn_process(ngx_cycle_t *cycle, ngx_spawn_proc_pt proc, void *data,
         ngx_processes[s].channel[1] = -1;
     }
 
+    // 记录进程索引
     ngx_process_slot = s;
 
 
@@ -319,6 +324,7 @@ ngx_init_signals(ngx_log_t *log)
 }
 
 
+// 信号处理函数主要是置一些标志位，具体的处理在进程主循环中进行
 static void
 ngx_signal_handler(int signo, siginfo_t *siginfo, void *ucontext)
 {
