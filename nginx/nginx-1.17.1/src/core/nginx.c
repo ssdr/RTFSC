@@ -651,6 +651,7 @@ ngx_cleanup_environment(void *data)
 }
 
 
+// 热升级时调用
 ngx_pid_t
 ngx_exec_new_binary(ngx_cycle_t *cycle, char *const *argv)
 {

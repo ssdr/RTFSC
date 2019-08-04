@@ -35,7 +35,7 @@ static ngx_connection_t  dumb;
 /* STUB */
 
 
-// 初始化cycle
+// 初始化cycle，非常复杂:(
 ngx_cycle_t *
 ngx_init_cycle(ngx_cycle_t *old_cycle)
 {
@@ -67,6 +67,7 @@ ngx_init_cycle(ngx_cycle_t *old_cycle)
 
     log = old_cycle->log;
 
+    // 创建一个pool，默认大小16k
     pool = ngx_create_pool(NGX_CYCLE_POOL_SIZE, log);
     if (pool == NULL) {
         return NULL;
@@ -133,6 +134,7 @@ ngx_init_cycle(ngx_cycle_t *old_cycle)
         return NULL;
     }
 
+    // rbtree of config_dump?
     ngx_rbtree_init(&cycle->config_dump_rbtree, &cycle->config_dump_sentinel,
                     ngx_str_rbtree_insert_value);
 
@@ -165,6 +167,7 @@ ngx_init_cycle(ngx_cycle_t *old_cycle)
         n = 1;
     }
 
+    // 初始化共享内存链表
     if (ngx_list_init(&cycle->shared_memory, pool, n, sizeof(ngx_shm_zone_t))
         != NGX_OK)
     {
@@ -174,6 +177,7 @@ ngx_init_cycle(ngx_cycle_t *old_cycle)
 
     n = old_cycle->listening.nelts ? old_cycle->listening.nelts : 10;
 
+    // 初始化监听套接字数组
     if (ngx_array_init(&cycle->listening, pool, n, sizeof(ngx_listening_t))
         != NGX_OK)
     {

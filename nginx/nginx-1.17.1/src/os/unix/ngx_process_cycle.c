@@ -184,6 +184,7 @@ ngx_master_process_cycle(ngx_cycle_t *cycle)
             ngx_master_process_exit(cycle);
         }
 
+        // 强制关闭
         if (ngx_terminate) {
             if (delay == 0) {
                 delay = 50;
@@ -206,6 +207,7 @@ ngx_master_process_cycle(ngx_cycle_t *cycle)
             continue;
         }
 
+        // 优雅关闭
         if (ngx_quit) {
             ngx_signal_worker_processes(cycle,
                                         ngx_signal_value(NGX_SHUTDOWN_SIGNAL));
@@ -223,6 +225,7 @@ ngx_master_process_cycle(ngx_cycle_t *cycle)
             continue;
         }
 
+        // 重新加载配置relaod
         if (ngx_reconfigure) {
             ngx_reconfigure = 0;
 
@@ -237,12 +240,14 @@ ngx_master_process_cycle(ngx_cycle_t *cycle)
 
             ngx_log_error(NGX_LOG_NOTICE, cycle->log, 0, "reconfiguring");
 
+            // 重新初始化一个新的cycle
             cycle = ngx_init_cycle(cycle);
             if (cycle == NULL) {
                 cycle = (ngx_cycle_t *) ngx_cycle;
                 continue;
             }
 
+            // 启动新的子进程
             ngx_cycle = cycle;
             ccf = (ngx_core_conf_t *) ngx_get_conf(cycle->conf_ctx,
                                                    ngx_core_module);
@@ -253,11 +258,14 @@ ngx_master_process_cycle(ngx_cycle_t *cycle)
             /* allow new processes to start */
             ngx_msleep(100);
 
+            // 对所有进程发送优雅关闭信号，但刚启动的进程不会处理该信号
+            // 因此，相当于只是对老进程发送优雅关闭信号
             live = 1;
             ngx_signal_worker_processes(cycle,
                                         ngx_signal_value(NGX_SHUTDOWN_SIGNAL));
         }
 
+        // 重新启动
         if (ngx_restart) {
             ngx_restart = 0;
             ngx_start_worker_processes(cycle, ccf->worker_processes,
@@ -266,6 +274,7 @@ ngx_master_process_cycle(ngx_cycle_t *cycle)
             live = 1;
         }
 
+        // 重新打开日志文件
         if (ngx_reopen) {
             ngx_reopen = 0;
             ngx_log_error(NGX_LOG_NOTICE, cycle->log, 0, "reopening logs");
@@ -281,6 +290,7 @@ ngx_master_process_cycle(ngx_cycle_t *cycle)
             ngx_new_binary = ngx_exec_new_binary(cycle, ngx_argv);
         }
 
+        // 对master发送SIGWINCH信号，优雅关闭worker进程
         if (ngx_noaccept) {
             ngx_noaccept = 0;
             ngx_noaccepting = 1;
@@ -518,6 +528,7 @@ ngx_signal_worker_processes(ngx_cycle_t *cycle, int signo)
             continue;
         }
 
+        // 刚启动的进程不接受信号，这样给所有信号发信号会只有旧进程处理信号，进行优雅退出
         if (ngx_processes[i].just_spawn) {
             ngx_processes[i].just_spawn = 0;
             continue;
@@ -545,6 +556,7 @@ ngx_signal_worker_processes(ngx_cycle_t *cycle, int signo)
         ngx_log_debug2(NGX_LOG_DEBUG_CORE, cycle->log, 0,
                        "kill (%P, %d)", ngx_processes[i].pid, signo);
 
+        // 向进程发送信号
         if (kill(ngx_processes[i].pid, signo) == -1) {
             err = ngx_errno;
             ngx_log_error(NGX_LOG_ALERT, cycle->log, err,

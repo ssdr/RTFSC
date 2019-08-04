@@ -37,32 +37,32 @@ ngx_process_t    ngx_processes[NGX_MAX_PROCESSES];
 
 
 ngx_signal_t  signals[] = {
-    { ngx_signal_value(NGX_RECONFIGURE_SIGNAL),
+    { ngx_signal_value(NGX_RECONFIGURE_SIGNAL), // SIGHUP
       "SIG" ngx_value(NGX_RECONFIGURE_SIGNAL),
       "reload",
       ngx_signal_handler },
 
-    { ngx_signal_value(NGX_REOPEN_SIGNAL),
+    { ngx_signal_value(NGX_REOPEN_SIGNAL), // SIGUSR1
       "SIG" ngx_value(NGX_REOPEN_SIGNAL),
       "reopen",
       ngx_signal_handler },
 
-    { ngx_signal_value(NGX_NOACCEPT_SIGNAL),
+    { ngx_signal_value(NGX_NOACCEPT_SIGNAL), // SIGWINCH
       "SIG" ngx_value(NGX_NOACCEPT_SIGNAL),
       "",
       ngx_signal_handler },
 
-    { ngx_signal_value(NGX_TERMINATE_SIGNAL),
+    { ngx_signal_value(NGX_TERMINATE_SIGNAL), // SIGTERM
       "SIG" ngx_value(NGX_TERMINATE_SIGNAL),
       "stop",
       ngx_signal_handler },
 
-    { ngx_signal_value(NGX_SHUTDOWN_SIGNAL),
+    { ngx_signal_value(NGX_SHUTDOWN_SIGNAL), // SIGQUIT
       "SIG" ngx_value(NGX_SHUTDOWN_SIGNAL),
       "quit",
       ngx_signal_handler },
 
-    { ngx_signal_value(NGX_CHANGEBIN_SIGNAL),
+    { ngx_signal_value(NGX_CHANGEBIN_SIGNAL), // SIGUSR2
       "SIG" ngx_value(NGX_CHANGEBIN_SIGNAL),
       "",
       ngx_signal_handler },

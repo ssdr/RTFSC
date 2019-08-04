@@ -51,6 +51,7 @@
 
 #if !(NGX_WIN32)
 
+// SIG##n 是把"SIG"和字符串n连接起来
 #define ngx_signal_helper(n)     SIG##n
 #define ngx_signal_value(n)      ngx_signal_helper(n)
 
