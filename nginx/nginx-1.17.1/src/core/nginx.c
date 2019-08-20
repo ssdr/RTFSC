@@ -253,6 +253,7 @@ main(int argc, char *const *argv)
     init_cycle.log = log;
     ngx_cycle = &init_cycle;
 
+    // 创建1K大小的pool
     init_cycle.pool = ngx_create_pool(1024, log);
     if (init_cycle.pool == NULL) {
         return 1;
@@ -1021,6 +1022,7 @@ ngx_process_options(ngx_cycle_t *cycle)
 }
 
 
+// 创建核心模块配置结构
 static void *
 ngx_core_module_create_conf(ngx_cycle_t *cycle)
 {
@@ -1066,6 +1068,7 @@ ngx_core_module_create_conf(ngx_cycle_t *cycle)
 }
 
 
+// 初始化核心模块配置结构成员为默认值
 static char *
 ngx_core_module_init_conf(ngx_cycle_t *cycle, void *conf)
 {

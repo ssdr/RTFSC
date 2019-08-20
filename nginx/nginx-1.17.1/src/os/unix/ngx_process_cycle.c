@@ -173,6 +173,7 @@ ngx_master_process_cycle(ngx_cycle_t *cycle)
         ngx_log_debug1(NGX_LOG_DEBUG_EVENT, cycle->log, 0,
                        "wake up, sigio %i", sigio);
 
+        // 重新启动异常退出的进程
         if (ngx_reap) {
             ngx_reap = 0;
             ngx_log_debug0(NGX_LOG_DEBUG_EVENT, cycle->log, 0, "reap children");
@@ -225,7 +226,7 @@ ngx_master_process_cycle(ngx_cycle_t *cycle)
             continue;
         }
 
-        // 重新加载配置relaod
+        // 重新加载配置reload
         if (ngx_reconfigure) {
             ngx_reconfigure = 0;
 
@@ -283,7 +284,7 @@ ngx_master_process_cycle(ngx_cycle_t *cycle)
                                         ngx_signal_value(NGX_REOPEN_SIGNAL));
         }
 
-        // 热升级时二进制改变，需要调用exec
+        // 对master进程发送USR2信号，热升级时二进制改变，需要调用exec
         if (ngx_change_binary) {
             ngx_change_binary = 0;
             ngx_log_error(NGX_LOG_NOTICE, cycle->log, 0, "changing binary");
@@ -556,12 +557,13 @@ ngx_signal_worker_processes(ngx_cycle_t *cycle, int signo)
         ngx_log_debug2(NGX_LOG_DEBUG_CORE, cycle->log, 0,
                        "kill (%P, %d)", ngx_processes[i].pid, signo);
 
-        // 向进程发送信号
+        // 向worker进程发送信号
         if (kill(ngx_processes[i].pid, signo) == -1) {
             err = ngx_errno;
             ngx_log_error(NGX_LOG_ALERT, cycle->log, err,
                           "kill(%P, %d) failed", ngx_processes[i].pid, signo);
 
+            // no such process
             if (err == NGX_ESRCH) {
                 ngx_processes[i].exited = 1;
                 ngx_processes[i].exiting = 0;
@@ -643,6 +645,7 @@ ngx_reap_children(ngx_cycle_t *cycle)
                 && !ngx_terminate
                 && !ngx_quit)
             {
+                // 重新启动worker进程
                 if (ngx_spawn_process(cycle, ngx_processes[i].proc,
                                       ngx_processes[i].data,
                                       ngx_processes[i].name, i)

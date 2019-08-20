@@ -221,8 +221,8 @@
 
 // 模块数据结构，重要
 struct ngx_module_s {
-    ngx_uint_t            ctx_index;
-    ngx_uint_t            index;
+    ngx_uint_t            ctx_index; // 相同类型模块的索引
+    ngx_uint_t            index;     // 所有模块的索引
 
     char                 *name;
 

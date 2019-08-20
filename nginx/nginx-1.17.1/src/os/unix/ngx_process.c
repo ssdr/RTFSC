@@ -270,6 +270,7 @@ ngx_spawn_process(ngx_cycle_t *cycle, ngx_spawn_proc_pt proc, void *data,
 ngx_pid_t
 ngx_execute(ngx_cycle_t *cycle, ngx_exec_ctx_t *ctx)
 {
+    // 子进程调用execve()产生新版本进程
     return ngx_spawn_process(cycle, ngx_execute_proc, ctx, ctx->name,
                              NGX_PROCESS_DETACHED);
 }
@@ -286,6 +287,7 @@ ngx_execute_proc(ngx_cycle_t *cycle, void *data)
                       ctx->name, ctx->path);
     }
 
+    // execve执行成功不会有返回值，如果有返回值则退出子进程
     exit(1);
 }
 
@@ -409,6 +411,7 @@ ngx_signal_handler(int signo, siginfo_t *siginfo, void *ucontext)
             break;
 
         case SIGCHLD:
+            // 子进程异常退出时，收到此信号，master负责重新拉起子进程
             ngx_reap = 1;
             break;
         }

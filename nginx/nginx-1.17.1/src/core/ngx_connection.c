@@ -422,6 +422,7 @@ ngx_open_listening_sockets(ngx_cycle_t *cycle)
 
     /* TODO: configurable try number */
 
+    // 打开监听socket，最多尝试5次
     for (tries = 5; tries; tries--) {
         failed = 0;
 
