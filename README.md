@@ -2,7 +2,7 @@
 :computer: Read The Fucking Source Code :computer:
 
 ## Nginx
-[Nginx officail](https://github.com/nginx/nginx.git)
+[Nginx official](https://github.com/nginx/nginx.git)
 
 * 进程启动流程
 * 进程间通信之channel

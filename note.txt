@@ -1,0 +1,10 @@
+
+
+
+1. git subtree add -P nginx nginx
+2. git subtree add -P luajit2 luajit2
+3. git subtree add -P lua-nginx-module ngx-lua
+4. git subtree add -P lua-resty-core lua-resty-core
+
+
+
